@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\InvitationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -15,17 +16,17 @@ use App\Http\Controllers\AuthController;
 |
 */
 Route::group([
-    'middleware' => 'api',
+    'middleware' => 'auth:api',
     'prefix' => 'auth'
 ], function () {
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login'])->withoutMiddleware('auth:api');
+    Route::post('/register', [AuthController::class, 'register'])->withoutMiddleware('auth:api');;
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::get('/user-profile', [AuthController::class, 'userProfile']);
 });
 Route::group([
-    'middleware' => 'api',
+    'middleware' => 'auth:api',
 ], function () {
     Route::post('/invitation', [InvitationController::class, 'create']);
     Route::get('/invitations', [InvitationController::class, 'index']);
@@ -33,5 +34,5 @@ Route::group([
     Route::post('/invitation/inviter/{id}', [InvitationController::class, 'acceptInvitation']);
     Route::delete('/invitation/inviter/{id}', [InvitationController::class, 'rejectInvitation']);
 
-    Route::get('/contacts', [\App\Http\Controllers\ContactController::class, 'index']);
+    Route::get('/contacts', [ContactController::class, 'index']);
 });
