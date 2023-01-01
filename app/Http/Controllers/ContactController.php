@@ -6,6 +6,6 @@ use Illuminate\Http\Request;
 
 class ContactController extends Controller {
     public function index() {
-        return auth()->user()->contacts();
+        return auth()->user()->contacts()->get();
     }
 }
