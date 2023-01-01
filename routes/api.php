@@ -32,4 +32,6 @@ Route::group([
     Route::delete('/invitation/user/{id}', [InvitationController::class, 'delete']);
     Route::post('/invitation/inviter/{id}', [InvitationController::class, 'acceptInvitation']);
     Route::delete('/invitation/inviter/{id}', [InvitationController::class, 'rejectInvitation']);
+
+    Route::get('/contacts', [\App\Http\Controllers\ContactController::class, 'index']);
 });
