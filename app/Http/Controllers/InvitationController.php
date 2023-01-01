@@ -11,11 +11,19 @@ class InvitationController extends Controller {
         $this->middleware('auth:api');
     }
 
-    public function create(Request $request, $contactUserId) {
+    public function create(Request $request) {
+        $request->validate([
+            'phone_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/'
+        ]);
         $user = auth()->user();
-        User::findOrFail($contactUserId);
-        $user->invitations()->attach($contactUserId);
+        $phone = $request->input('phone');
+        $contactUser = User::where('phone', $phone)->firstOrFail();
+        $user->invitations()->attach($contactUser->id);
         return response()->json(['success' => true]);
+    }
+
+    public function index() {
+        return auth()->user()->invitations();
     }
 
     public function delete(Request $request, $contactUserId) {
