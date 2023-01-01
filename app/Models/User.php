@@ -64,7 +64,6 @@ class User extends Authenticatable implements JWTSubject {
             'invitations',
             'user_id',
             'contact_user_id')
-            ->withPivot('status')
             ->withTimestamps();
 
     }
