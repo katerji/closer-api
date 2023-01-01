@@ -1,14 +1,16 @@
 <?php
+
 namespace App\Models;
+
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable implements JWTSubject
-{
+class User extends Authenticatable implements JWTSubject {
     use HasFactory, Notifiable;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -45,6 +47,28 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTIdentifier() {
         return $this->getKey();
     }
+
+    public function contacts() {
+        return
+            $this->belongsToMany(
+                User::CLASS,
+                'contacts',
+                'user_id',
+                'contact_user_id')
+                ->withPivot('contact_name')->withTimestamps();
+    }
+
+    public function invitations() {
+        return $this->belongsToMany(
+            User::CLASS,
+            'invitations',
+            'user_id',
+            'contact_user_id')
+            ->withPivot('status')
+            ->withTimestamps();
+
+    }
+
     /**
      * Return a key value array, containing any custom claims to be added to the JWT.
      *
