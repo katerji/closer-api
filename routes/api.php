@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\MessageController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -35,4 +37,11 @@ Route::group([
     Route::delete('/invitation/inviter/{id}', [InvitationController::class, 'rejectInvitation']);
 
     Route::get('/contacts', [ContactController::class, 'index']);
+
+    Route::post('/message', [MessageController::class, 'create']);
+    Route::get('/messages/chat/{id}', [MessageController::class, 'index']);
+
+    Route::post('/chat', [ChatController::class, 'create']);
+    Route::get('/chats', [ChatController::class, 'index']);
+
 });
