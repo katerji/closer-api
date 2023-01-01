@@ -27,7 +27,8 @@ Route::group([
 Route::group([
     'middleware' => 'api',
 ], function () {
-    Route::post('/invitation/user/{id}', [InvitationController::class, 'create']);
+    Route::post('/invitation', [InvitationController::class, 'create']);
+    Route::get('/invitations', [InvitationController::class, 'index']);
     Route::delete('/invitation/user/{id}', [InvitationController::class, 'delete']);
     Route::post('/invitation/inviter/{id}', [InvitationController::class, 'acceptInvitation']);
     Route::delete('/invitation/inviter/{id}', [InvitationController::class, 'rejectInvitation']);
