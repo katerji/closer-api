@@ -58,6 +58,16 @@ class User extends Authenticatable implements JWTSubject {
                 ->withPivot('contact_name')->withTimestamps();
     }
 
+    public function chats() {
+        return
+            $this->belongsToMany(
+                User::CLASS,
+                'chats',
+                'user_id',
+                'contact_user_id')
+                ->withTimestamps();
+    }
+
     public function invitations() {
         return $this->belongsToMany(
             User::CLASS,
