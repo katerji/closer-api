@@ -78,6 +78,15 @@ class User extends Authenticatable implements JWTSubject {
      * @return array
      */
     public function getJWTCustomClaims() {
-        return [];
+        return [
+            "id" => $this->id,
+            "phone" => $this->phone,
+            "name" => $this->name,
+            "chats" => $this->getChatIds()
+        ];
+    }
+
+    public function getChatIds() {
+        return $this->chats()->get(['chats.id'])->pluck('id')->toArray();
     }
 }
