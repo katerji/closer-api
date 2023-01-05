@@ -1,4 +1,4 @@
-FROM katerji/base-php
+FROM php:8.2-apache
 RUN docker-php-ext-install pdo_mysql
 ADD ../ /var/www/html/api/
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
