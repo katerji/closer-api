@@ -32,7 +32,17 @@ class InvitationController extends Controller {
     }
 
     public function index() {
-        return auth()->user()->invitations()->get()->makeHidden('pivot');
+        $invitations = auth()->user()->invitations()->get()->makeHidden('pivot');
+        $sentInvitations = [];
+        $receivedInvitations = [];
+        foreach ($invitations as $invitation) {
+            if ($invitation->id == auth()->user()->id) {
+                $receivedInvitations[] = $invitation;
+            } else {
+                $sentInvitations[] = $invitation;
+            }
+        }
+        return response()->json(['sent_invitations' => $sentInvitations, 'received_invitations' => $receivedInvitations]);
     }
 
     public function delete(Request $request, $contactUserId) {
