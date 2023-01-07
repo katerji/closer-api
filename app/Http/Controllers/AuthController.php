@@ -1,5 +1,6 @@
 <?php
 namespace App\Http\Controllers;
+use App\Utility\Constants;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
@@ -18,10 +19,10 @@ class AuthController extends Controller
             'password' => 'required|string|min:6',
         ]);
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json(["error" => 'Please enter the required fields.'], Constants::HTTP_ERROR_CODE_BAD_REQUEST);
         }
         if (! $token = auth()->attempt($validator->validated())) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['error' => 'Incorrect phone number or password.'],  Constants::HTTP_ERROR_CODE_BAD_REQUEST);
         }
         return $this->createNewToken($token);
     }
@@ -37,7 +38,7 @@ class AuthController extends Controller
             'password' => 'required|string|confirmed|min:6',
         ]);
         if($validator->fails()){
-            return response()->json($validator->errors()->toJson(), 400);
+            return response()->json(['error' => 'Please enter the required fields.'],  Constants::HTTP_ERROR_CODE_BAD_REQUEST);
         }
         $user = User::create(array_merge(
                     $validator->validated(),
