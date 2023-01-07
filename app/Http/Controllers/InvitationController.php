@@ -37,9 +37,9 @@ class InvitationController extends Controller {
         $receivedInvitations = [];
         foreach ($invitations as $invitation) {
             if ($invitation->id == auth()->user()->id) {
-                $receivedInvitations[] = $invitation;
-            } else {
                 $sentInvitations[] = $invitation;
+            } else {
+                $receivedInvitations[] = $invitation;
             }
         }
         return response()->json(['sent_invitations' => $sentInvitations, 'received_invitations' => $receivedInvitations]);
