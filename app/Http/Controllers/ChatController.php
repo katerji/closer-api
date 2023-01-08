@@ -18,6 +18,15 @@ class ChatController extends Controller {
         $chats = auth()->user()->chats()->orderBy('updated_at', 'desc')->limit(50)->get()->makeHidden('pivot');
         foreach ($chats as &$chat) {
             $chat['messages'] = $chat->messages()->orderBy('created_at', 'desc')->limit(50)->get();
+            if (!$chat['name']) {
+                $users = $chat->users()->get(['users.id', 'users.name']);
+                foreach ($users as $user) {
+                    if ($user->id != auth()->user()->id) {
+                        $chat['name'] = $user->name;
+                        break;
+                    }
+                }
+            }
         }
         return response()->json($chats);
     }

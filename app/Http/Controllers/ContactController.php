@@ -7,6 +7,6 @@ use Illuminate\Http\Request;
 class ContactController extends Controller {
 
     public function index() {
-        return auth()->user()->contacts()->get();
+        return auth()->user()->contacts()->get()->makeHidden('pivot')->sortBy('Name');
     }
 }
