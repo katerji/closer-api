@@ -62,14 +62,16 @@ class User extends Authenticatable implements JWTSubject {
         return $this->belongsToMany(Chat::CLASS,'user_chat')->withTimestamps();
     }
 
-    public function invitations() {
-        return $this->belongsToMany(
-            User::CLASS,
-            'invitations',
-            'user_id',
-            'contact_user_id')
-            ->withTimestamps();
+    public function sentInvitations() {
+        return $this->hasMany(
+            Invitation::CLASS,
+            'user_id');
+    }
 
+    public function receivedInvitations() {
+        return $this->hasMany(
+            Invitation::CLASS,
+            'contact_user_id');
     }
 
     /**

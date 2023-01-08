@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Invitation;
 use App\Models\User;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
@@ -24,37 +25,42 @@ class InvitationController extends Controller {
                 'data' => $validator->errors()
             ]));
         }
-        $user = auth()->user();
         $phone = $request->input('phone_number');
         $contactUser = User::where('phone', $phone)->firstOrFail();
-        $user->invitations()->attach($contactUser->id);
+        $invitation = new Invitation();
+        $invitation->sender()->associate(auth()->user());
+        $invitation->receiver()->associate($contactUser);
+        $invitation->save();
         return response()->json(['success' => true]);
     }
 
     public function index() {
-        $invitations = auth()->user()->invitations()->get()->makeHidden('pivot');
-        $sentInvitations = [];
-        $receivedInvitations = [];
-        foreach ($invitations as $invitation) {
-            if ($invitation->id == auth()->user()->id) {
-                $receivedInvitations[] = $invitation;
-            } else {
-                $sentInvitations[] = $invitation;
-            }
-        }
+        $sentInvitations = DB::table('invitations')
+            ->whereUserId(auth()->user()->id)
+            ->join('users', 'users.id', '=', 'invitations.contact_user_id')
+            ->select('users.id', 'users.name', 'users.phone')
+            ->get();
+        $receivedInvitations = DB::table('invitations')
+            ->whereContactUserId(auth()->user()->id)
+            ->join('users', 'users.id', '=', 'invitations.user_id')
+            ->select('users.id', 'users.name', 'users.phone')
+            ->get();
         return response()->json(['sent_invitations' => $sentInvitations, 'received_invitations' => $receivedInvitations]);
     }
 
     public function delete(Request $request, $contactUserId) {
-        $user = auth()->user();
-        User::findOrFail($contactUserId);
-        $user->invitations()->detach($contactUserId);
+        DB::table('invitations')
+            ->whereUserId(auth()->user()->id)
+            ->whereContactUserId($contactUserId)
+            ->delete();
         return response()->json(['success' => true]);
     }
 
     public function rejectInvitation(Request $request, $inviterUserId) {
-        $inviter = User::findOrFail($inviterUserId);
-        $inviter->invitations()->detach(auth()->user()->id);
+        DB::table('invitations')
+            ->whereUserId($inviterUserId)
+            ->whereContactUserId(auth()->user()->id)
+            ->delete();
         return response()->json(['success' => true]);
     }
 
@@ -70,7 +76,10 @@ class InvitationController extends Controller {
         }
         $inviter->contacts()->attach($user->id, ['contact_name' => $user->name]);
         $user->contacts()->attach($inviterUserId, ['contact_name' => $inviter->name]);
-        $inviter->invitations()->detach($user->id);
+        DB::table('invitations')
+            ->whereUserId($inviterUserId)
+            ->whereContactUserId(auth()->user()->id)
+            ->delete();
         return response()->json(['success' => true]);
     }
 }
