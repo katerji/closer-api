@@ -31,7 +31,7 @@ class InvitationController extends Controller {
         $invitation->sender()->associate(auth()->user());
         $invitation->receiver()->associate($contactUser);
         $invitation->save();
-        return response()->json(['success' => true]);
+        return $this->index();
     }
 
     public function index() {
@@ -39,11 +39,13 @@ class InvitationController extends Controller {
             ->whereUserId(auth()->user()->id)
             ->join('users', 'users.id', '=', 'invitations.contact_user_id')
             ->select('users.id', 'users.name', 'users.phone')
+            ->orderByDesc('invitations.created_at')
             ->get();
         $receivedInvitations = DB::table('invitations')
             ->whereContactUserId(auth()->user()->id)
             ->join('users', 'users.id', '=', 'invitations.user_id')
             ->select('users.id', 'users.name', 'users.phone')
+            ->orderByDesc('invitations.created_at')
             ->get();
         return response()->json(['sent_invitations' => $sentInvitations, 'received_invitations' => $receivedInvitations]);
     }
@@ -53,7 +55,7 @@ class InvitationController extends Controller {
             ->whereUserId(auth()->user()->id)
             ->whereContactUserId($contactUserId)
             ->delete();
-        return response()->json(['success' => true]);
+        return $this->index();
     }
 
     public function rejectInvitation(Request $request, $inviterUserId) {
@@ -61,7 +63,7 @@ class InvitationController extends Controller {
             ->whereUserId($inviterUserId)
             ->whereContactUserId(auth()->user()->id)
             ->delete();
-        return response()->json(['success' => true]);
+        return $this->index();
     }
 
     public function acceptInvitation(Request $request, $inviterUserId) {
@@ -80,6 +82,6 @@ class InvitationController extends Controller {
             ->whereUserId($inviterUserId)
             ->whereContactUserId(auth()->user()->id)
             ->delete();
-        return response()->json(['success' => true]);
+        return $this->index();
     }
 }
