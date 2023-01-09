@@ -31,6 +31,24 @@ class ChatController extends Controller {
         return response()->json($chats);
     }
 
+    public function getChat(Request $request, $chatId) {
+        $chat = Chat::find($chatId);
+        if (!$chatId) {
+            return response()->json(['error' => "Chat $chatId not found"]);
+        }
+        $chat['messages'] = $chat->messages()->orderBy('created_at', 'desc')->limit(50)->get();
+        if (!$chat['name']) {
+            $users = $chat->users()->get(['users.id', 'users.name']);
+            foreach ($users as $user) {
+                if ($user->id != auth()->user()->id) {
+                    $chat['name'] = $user->name;
+                    break;
+                }
+            }
+        }
+        return response()->json(['chat' => $chat]);
+    }
+
     /**
      * Show the form for creating a new resource.
      *
@@ -76,6 +94,16 @@ class ChatController extends Controller {
         $chat = Chat::create();
         $chat->users()->attach($recipient->id);
         $chat->users()->attach($userId);
+        if (!$chat['name']) {
+            $users = $chat->users()->get(['users.id', 'users.name']);
+            foreach ($users as $user) {
+                if ($user->id != auth()->user()->id) {
+                    $chat['name'] = $user->name;
+                    break;
+                }
+            }
+        }
+        $chat['messages'] = [];
         return response()->json(['chat' => $chat]);
     }
 

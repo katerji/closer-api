@@ -42,6 +42,7 @@ Route::group([
     Route::get('/messages/chat/{id}', [MessageController::class, 'index']);
 
     Route::post('/chat', [ChatController::class, 'create']);
+    Route::get('/chat/{id}', [ChatController::class, 'getChat']);
     Route::get('/chats', [ChatController::class, 'index']);
 
 });
