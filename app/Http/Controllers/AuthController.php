@@ -24,7 +24,15 @@ class AuthController extends Controller
         if (! $token = auth()->attempt($validator->validated())) {
             return response()->json(['error' => 'Incorrect phone number or password.'],  Constants::HTTP_ERROR_CODE_BAD_REQUEST);
         }
-        return $this->createNewToken($token);
+        $response = [
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => auth()->factory()->getTTL() * 60,
+            'user' => auth()->user()
+        ];
+        $response['chats'] = ChatController::getUserChats(auth()->user());
+        $response['contacts'] = ContactController::getContacts(auth()->user());
+        return response()->json($response);
     }
     /**
      * Register a User.

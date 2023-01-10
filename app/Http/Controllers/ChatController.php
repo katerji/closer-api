@@ -9,26 +9,31 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class ChatController extends Controller {
+
+    public static function getUserChats($user, $withLimit = true) {
+        $chats = $user->chats()->orderBy('updated_at', 'desc')->limit(50)->get()->makeHidden('pivot');
+        foreach ($chats as &$chat) {
+            $chat['messages'] = $chat->messages()->orderBy('created_at', 'desc')->limit(50)->get();
+            if (!$chat['name']) {
+                $chatUsers = $chat->users()->get(['users.id', 'users.name']);
+                foreach ($chatUsers as $chatUser) {
+                    if ($chatUser->id != $user->id) {
+                        $chat['name'] = $chatUser->name;
+                        break;
+                    }
+                }
+            }
+        }
+        return $chats;
+    }
+
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\JsonResponse
      */
     public function index() {
-        $chats = auth()->user()->chats()->orderBy('updated_at', 'desc')->limit(50)->get()->makeHidden('pivot');
-        foreach ($chats as &$chat) {
-            $chat['messages'] = $chat->messages()->orderBy('created_at', 'desc')->limit(50)->get();
-            if (!$chat['name']) {
-                $users = $chat->users()->get(['users.id', 'users.name']);
-                foreach ($users as $user) {
-                    if ($user->id != auth()->user()->id) {
-                        $chat['name'] = $user->name;
-                        break;
-                    }
-                }
-            }
-        }
-        return response()->json($chats);
+        return response()->json(self::getUserChats(auth()->user()));
     }
 
     public function getChat(Request $request, $chatId) {
