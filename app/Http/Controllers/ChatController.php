@@ -38,7 +38,7 @@ class ChatController extends Controller {
 
     public function getChat(Request $request, $chatId) {
         $chat = Chat::find($chatId);
-        if (!$chatId) {
+        if (!$chat) {
             return response()->json(['error' => "Chat $chatId not found"]);
         }
         $chat['messages'] = $chat->messages()->orderBy('created_at', 'desc')->limit(50)->get();
