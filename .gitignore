@@ -13,6 +13,7 @@ auth.json
 npm-debug.log
 yarn-error.log
 vendor
+vendor/
 /.fleet
 /.idea
 /.vscode
