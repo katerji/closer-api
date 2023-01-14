@@ -5,11 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Chat;
 use App\Models\Message;
 use App\Models\User;
+use Aws\Credentials\Credentials;
+use Aws\S3\S3Client;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class MessageController extends Controller {
+    private const S3_BUCKET = 'closer-media';
+
     /**
      * Display a listing of the resource.
      * needs pagination
@@ -17,7 +21,7 @@ class MessageController extends Controller {
      */
     public function index(Request $request, $chatId) {
         $chat = Chat::findOrFail($chatId);
-        if(!$chat->containsUser(auth()->user()->id)) {
+        if (!$chat->containsUser(auth()->user()->id)) {
             throw new HttpResponseException(response()->json([
                 'success' => false,
                 'message' => 'Permission error',
@@ -68,54 +72,33 @@ class MessageController extends Controller {
         return response()->json(['message' => $message]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request) {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param \App\Models\Message $message
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Message $message) {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param \App\Models\Message $message
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Message $message) {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param \App\Models\Message $message
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Message $message) {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param \App\Models\Message $message
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Message $message) {
-        //
+    public function upload(Request $request) {
+        $validated = Validator::make($request->all(), [
+            'chat_id' => 'required',
+            'file' => 'required',
+            'file_name' => 'required'
+        ]);
+        if (!$validated) {
+            return response()->json(['error' => 'Please enter required fields']);
+        }
+        $credentials = new Credentials(env('AWS_ACCESS_KEY_ID'), env('AWS_SECRET_ACCESS_KEY'));
+        $file = file_get_contents($request->file('file')->getRealPath());
+        $s3 = new S3Client([
+            'version' => 'latest',
+            'region' => 'eu-west-1',
+            'credentials' => $credentials,
+        ]);
+        $chatId = $request->input('chat_id');
+        $userId = auth()->user()->id;
+        $pathToFolder = "$chatId/$userId/";
+        $fileExtension = pathinfo($request->input('file_name'), PATHINFO_EXTENSION);
+        $fileName = time() . ".$fileExtension";
+        $filePath = $pathToFolder . $fileName;
+        $s3->putObject([
+            'Key' => $filePath,
+            'Bucket' => self::S3_BUCKET,
+            'Body' => $file
+        ]);
+        return response()->json(['success' => true]);
     }
 }

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('sender_user_id');
             $table->unsignedBigInteger('chat_id');
-            $table->string('message');
+            $table->string('message')->nullable();
             $table->tinyInteger('message_type');
             $table->string('s3_path')->nullable();
             $table->timestamps();

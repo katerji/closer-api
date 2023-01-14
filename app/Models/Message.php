@@ -18,6 +18,10 @@ class Message extends Model
         's3_path',
     ];
 
+    protected $hidden = [
+        's3_path',
+    ];
+
     public function chat() {
         return $this->hasOne(Chat::CLASS);
     }
