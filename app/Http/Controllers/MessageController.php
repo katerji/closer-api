@@ -82,7 +82,6 @@ class MessageController extends Controller {
             return response()->json(['error' => 'Please enter required fields']);
         }
         $credentials = new Credentials(env('AWS_ACCESS_KEY_ID'), env('AWS_SECRET_ACCESS_KEY'));
-        $file = file_get_contents($request->file('file')->getRealPath());
         $s3 = new S3Client([
             'version' => 'latest',
             'region' => 'eu-west-1',
@@ -93,12 +92,34 @@ class MessageController extends Controller {
         $pathToFolder = "$chatId/$userId/";
         $fileExtension = pathinfo($request->input('file_name'), PATHINFO_EXTENSION);
         $fileName = time() . ".$fileExtension";
-        $filePath = $pathToFolder . $fileName;
+        $filePath = $pathToFolder . "resized-$fileName";
+        $blob = self::makeThumbnail($request->file('file')->getContent());
         $s3->putObject([
             'Key' => $filePath,
             'Bucket' => self::S3_BUCKET,
-            'Body' => $file
+            'Body' => $blob
         ]);
-        return response()->json(['success' => true]);
+        return response()->json(['success' => base64_encode($blob)]);
+    }
+
+    private static function makeThumbnail($src) {
+        $source_image = imagecreatefromstring($src);
+        $width = imagesx($source_image);
+        $height = imagesy($source_image);
+        $desired_width = 100;
+        $desired_height = floor($height * ($desired_width / $width));
+        $virtual_image = imagecreatetruecolor($desired_width, $desired_height);
+        imagecopyresampled($virtual_image, $source_image, 0, 0, 0, 0, $desired_width, $desired_height, $width, $height);
+        $gaussian = array(array(1.0, 2.0, 1.0), array(2.0, 4.0, 2.0), array(1.0, 2.0, 1.0));
+        imageconvolution($virtual_image, $gaussian, 200, 0);
+
+        // Output the image
+        ob_start();
+        imagejpeg($virtual_image);
+        $img = ob_get_clean();
+        ob_end_clean();
+        imagedestroy($virtual_image);
+
+        return $img;
     }
 }
